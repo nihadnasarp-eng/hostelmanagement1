@@ -1,5 +1,5 @@
 import Sidebar from '../components/Sidebar';
-import { Plus, Search, Filter, MoreVertical } from 'lucide-react';
+import { Plus, Search, Filter, MoreVertical, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 
@@ -7,21 +7,49 @@ const RoomsPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [rooms, setRooms] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [newRoom, setNewRoom] = useState({
+        number: '',
+        type: 'Single',
+        capacity: 1,
+        price: 450
+    });
+
+    const fetchRooms = async () => {
+        setLoading(true);
+        const { data, error } = await supabase
+            .from('Room')
+            .select('*');
+        if (error) console.error(error);
+        else setRooms(data || []);
+        setLoading(false);
+    };
 
     useEffect(() => {
-        const fetchRooms = async () => {
-            const { data, error } = await supabase
-                .from('Room')
-                .select('*');
-            if (error) console.error(error);
-            else setRooms(data || []);
-            setLoading(false);
-        };
         fetchRooms();
     }, []);
 
+    const handleAddRoom = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const { error } = await supabase
+            .from('Room')
+            .insert([{ ...newRoom, status: 'AVAILABLE' }]);
+
+        if (error) alert(error.message);
+        else {
+            setShowModal(false);
+            fetchRooms();
+            setNewRoom({ number: '', type: 'Single', capacity: 1, price: 450 });
+        }
+    };
+
+    const filteredRooms = rooms.filter(r =>
+        r.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        r.type.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
-        <div style={{ display: 'flex', minHeight: '100vh' }}>
+        <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
             <Sidebar role="ADMIN" />
             <main style={{ marginLeft: '280px', flex: 1, padding: '2rem' }}>
                 <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -29,7 +57,7 @@ const RoomsPage = () => {
                         <h1>Room Management</h1>
                         <p style={{ color: 'var(--text-muted)' }}>Manage hostel rooms, types and availability</p>
                     </div>
-                    <button className="btn btn-primary">
+                    <button className="btn btn-primary" onClick={() => setShowModal(true)}>
                         <Plus size={18} /> Add New Room
                     </button>
                 </header>
@@ -41,7 +69,6 @@ const RoomsPage = () => {
                             <input
                                 type="text"
                                 placeholder="Search by room number or type..."
-                                className="glass"
                                 style={{
                                     width: '100%',
                                     padding: '0.75rem 1rem 0.75rem 2.5rem',
@@ -53,9 +80,6 @@ const RoomsPage = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                        <button className="btn" style={{ border: '1px solid var(--border)', background: 'white' }}>
-                            <Filter size={18} /> Filters
-                        </button>
                     </div>
 
                     <div style={{ overflowX: 'auto' }}>
@@ -75,7 +99,7 @@ const RoomsPage = () => {
                                     <tr>
                                         <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading rooms...</td>
                                     </tr>
-                                ) : rooms.map((room) => (
+                                ) : filteredRooms.length > 0 ? filteredRooms.map((room) => (
                                     <tr key={room.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s' }}>
                                         <td style={{ padding: '1rem', fontWeight: 600 }}>{room.number}</td>
                                         <td style={{ padding: '1rem' }}>{room.type}</td>
@@ -92,18 +116,84 @@ const RoomsPage = () => {
                                                 {room.status}
                                             </span>
                                         </td>
-                                        <td style={{ padding: '1rem' }}>{room.price}</td>
+                                        <td style={{ padding: '1rem' }}>${room.price}</td>
                                         <td style={{ padding: '1rem', textAlign: 'right' }}>
                                             <button style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                                                 <MoreVertical size={18} />
                                             </button>
                                         </td>
                                     </tr>
-                                ))}
+                                )) : (
+                                    <tr>
+                                        <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No rooms found.</td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
                 </section>
+
+                {/* Add Room Modal */}
+                {showModal && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                    }}>
+                        <div className="card" style={{ width: '400px', padding: '2rem', position: 'relative' }}>
+                            <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', border: 'none', background: 'none', cursor: 'pointer' }}>
+                                <X size={20} />
+                            </button>
+                            <h3>Add New Room</h3>
+                            <form onSubmit={handleAddRoom} style={{ marginTop: '1.5rem' }}>
+                                <div style={{ marginBottom: '1rem' }}>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem' }}>Room Number</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}
+                                        value={newRoom.number}
+                                        onChange={e => setNewRoom({ ...newRoom, number: e.target.value })}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: '1rem' }}>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem' }}>Type</label>
+                                    <select
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}
+                                        value={newRoom.type}
+                                        onChange={e => setNewRoom({ ...newRoom, type: e.target.value })}
+                                    >
+                                        <option value="Single">Single</option>
+                                        <option value="Double">Double</option>
+                                        <option value="Triple">Triple</option>
+                                    </select>
+                                </div>
+                                <div style={{ marginBottom: '1rem' }}>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem' }}>Capacity</label>
+                                    <input
+                                        type="number"
+                                        required
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}
+                                        value={newRoom.capacity}
+                                        onChange={e => setNewRoom({ ...newRoom, capacity: parseInt(e.target.value) })}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem' }}>Price/Month ($)</label>
+                                    <input
+                                        type="number"
+                                        required
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}
+                                        value={newRoom.price}
+                                        onChange={e => setNewRoom({ ...newRoom, price: parseInt(e.target.value) })}
+                                    />
+                                </div>
+                                <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                                    Save Room
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );

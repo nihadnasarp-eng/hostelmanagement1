@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
-import { ClipboardList, Users, CheckCircle, Clock } from 'lucide-react';
+import { ClipboardList, Users, CheckCircle, Clock, X } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 
 const WardenDashboard = () => {
@@ -11,37 +11,55 @@ const WardenDashboard = () => {
     });
     const [recentComplaints, setRecentComplaints] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
+    const [newStatus, setNewStatus] = useState('');
+
+    const fetchWardenData = async () => {
+        setLoading(true);
+        // Fetch stats
+        const { count: pendingCount } = await supabase.from('Complaint').select('*', { count: 'exact', head: true }).eq('status', 'OPEN');
+        const { count: resolvedCount } = await supabase.from('Complaint').select('*', { count: 'exact', head: true }).eq('status', 'RESOLVED');
+        const { count: studentCount } = await supabase.from('Profile').select('*', { count: 'exact', head: true });
+
+        setStats({
+            pending: pendingCount || 0,
+            resolved: resolvedCount || 0,
+            newStudents: studentCount || 0
+        });
+
+        // Fetch recent complaints
+        const { data: complaintData } = await supabase
+            .from('Complaint')
+            .select('*, profile:Profile(*)')
+            .order('createdAt', { ascending: false })
+            .limit(5);
+
+        setRecentComplaints(complaintData || []);
+        setLoading(false);
+    };
 
     useEffect(() => {
-        const fetchWardenData = async () => {
-            // Fetch stats
-            const { count: pendingCount } = await supabase.from('Complaint').select('*', { count: 'exact', head: true }).eq('status', 'OPEN');
-            const { count: resolvedCount } = await supabase.from('Complaint').select('*', { count: 'exact', head: true }).eq('status', 'RESOLVED');
-            const { count: studentCount } = await supabase.from('Profile').select('*', { count: 'exact', head: true });
-
-            setStats({
-                pending: pendingCount || 0,
-                resolved: resolvedCount || 0,
-                newStudents: studentCount || 0
-            });
-
-            // Fetch recent complaints
-            const { data: complaintData } = await supabase
-                .from('Complaint')
-                .select('*, profile:Profile(*)')
-                .order('createdAt', { ascending: false })
-                .limit(5);
-
-            setRecentComplaints(complaintData || []);
-            setLoading(false);
-        };
         fetchWardenData();
     }, []);
+
+    const handleUpdateStatus = async () => {
+        const { error } = await supabase
+            .from('Complaint')
+            .update({ status: newStatus })
+            .eq('id', selectedComplaint.id);
+
+        if (error) alert(error.message);
+        else {
+            setShowModal(false);
+            fetchWardenData();
+        }
+    };
 
     if (loading) return <div>Loading...</div>;
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh' }}>
+        <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
             <Sidebar role="WARDEN" />
             <main style={{ marginLeft: '280px', flex: 1, padding: '2rem' }}>
                 <header style={{ marginBottom: '2rem' }}>
@@ -95,7 +113,7 @@ const WardenDashboard = () => {
                                     <div>
                                         <h4 style={{ margin: 0 }}>{task.title}</h4>
                                         <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                            {task.profile?.firstName} {task.profile?.lastName} • Room {task.profile?.roomId || 'N/A'} • {new Date(task.createdAt).toLocaleDateString()}
+                                            {task.profile?.firstName} {task.profile?.lastName} • Room {task.profile?.roomId || 'Unassigned'} • {new Date(task.createdAt).toLocaleDateString()}
                                         </p>
                                     </div>
                                 </div>
@@ -105,13 +123,15 @@ const WardenDashboard = () => {
                                         fontWeight: 700,
                                         padding: '0.25rem 0.75rem',
                                         borderRadius: '20px',
-                                        background: task.status === 'OPEN' ? '#fee2e2' : '#dcfce7',
-                                        color: task.status === 'OPEN' ? '#b91c1c' : '#166534',
+                                        background: task.status === 'OPEN' ? '#fee2e2' : task.status === 'RESOLVED' ? '#dcfce7' : '#fef9c3',
+                                        color: task.status === 'OPEN' ? '#b91c1c' : task.status === 'RESOLVED' ? '#166534' : '#854d0e',
                                         textTransform: 'uppercase'
                                     }}>
                                         {task.status}
                                     </span>
-                                    <button className="btn" style={{ fontSize: '0.85rem', padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white' }}>
+                                    <button className="btn"
+                                        onClick={() => { setSelectedComplaint(task); setNewStatus(task.status); setShowModal(true); }}
+                                        style={{ fontSize: '0.85rem', padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white' }}>
                                         Update Status
                                     </button>
                                 </div>
@@ -121,6 +141,37 @@ const WardenDashboard = () => {
                         )}
                     </div>
                 </div>
+
+                {/* Update Status Modal */}
+                {showModal && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                    }}>
+                        <div className="card" style={{ width: '400px', padding: '2rem', position: 'relative' }}>
+                            <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', border: 'none', background: 'none', cursor: 'pointer' }}>
+                                <X size={20} />
+                            </button>
+                            <h3>Update Complaint Status</h3>
+                            <p style={{ marginTop: '0.5rem', color: 'var(--text-muted)' }}>{selectedComplaint?.title}</p>
+                            <div style={{ marginTop: '1.5rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem' }}>New Status</label>
+                                <select
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}
+                                    value={newStatus}
+                                    onChange={e => setNewStatus(e.target.value)}
+                                >
+                                    <option value="OPEN">Open</option>
+                                    <option value="IN_PROGRESS">In Progress</option>
+                                    <option value="RESOLVED">Resolved</option>
+                                </select>
+                            </div>
+                            <button onClick={handleUpdateStatus} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '1.5rem' }}>
+                                Save Status
+                            </button>
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );
