@@ -2,19 +2,43 @@ import React, { useState } from 'react';
 import { LogIn, User, Lock, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+import { supabase } from '../services/supabaseClient';
+
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Placeholder login logic
-        console.log('Logging in with:', email, password);
-        // Redirect based on dummy role for preview purposes
-        if (email.includes('admin')) navigate('/admin');
-        else if (email.includes('warden')) navigate('/warden');
-        else navigate('/student');
+        setLoading(true);
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+
+        if (error) {
+            alert(error.message);
+            setLoading(false);
+            return;
+        }
+
+        if (data.user) {
+            // Get role from profile table
+            const { data: profile } = await supabase
+                .from('Profile')
+                .select('role')
+                .eq('userId', data.user.id)
+                .single();
+
+            const role = profile?.role || 'STUDENT';
+            if (role === 'ADMIN') navigate('/admin');
+            else if (role === 'WARDEN') navigate('/warden');
+            else navigate('/student');
+        }
+        setLoading(false);
     };
 
     return (

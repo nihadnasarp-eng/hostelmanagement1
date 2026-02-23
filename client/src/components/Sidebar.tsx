@@ -1,9 +1,15 @@
-import { LayoutDashboard, Users, Home, ClipboardList, CreditCard, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Users, Home, ClipboardList, CreditCard, LogOut } from 'lucide-react';
+import { supabase } from '../services/supabaseClient';
 
 const Sidebar = ({ role }: { role: string }) => {
     const navigate = useNavigate();
     const location = useLocation();
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        navigate('/login');
+    };
 
     const menuItems = [
         { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: `/${role.toLowerCase()}` },
@@ -85,7 +91,7 @@ const Sidebar = ({ role }: { role: string }) => {
                     </div>
                 </div>
                 <button
-                    onClick={() => navigate('/login')}
+                    onClick={handleLogout}
                     style={{
                         width: '100%',
                         padding: '0.75rem',

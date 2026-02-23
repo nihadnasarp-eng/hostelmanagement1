@@ -1,13 +1,33 @@
 import Sidebar from '../components/Sidebar';
-import { CreditCard, DollarSign, TrendingUp, AlertCircle, Download, Calendar } from 'lucide-react';
+import { DollarSign, TrendingUp, AlertCircle, Download, Calendar } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../services/supabaseClient';
 
 const FeesPage = () => {
-    const transactions = [
-        { id: '1', student: 'Alex Johnson', amount: '$450', date: 'Feb 15, 2026', status: 'PAID', method: 'Credit Card' },
-        { id: '2', student: 'Sarah Williams', amount: '$450', date: 'Feb 12, 2026', status: 'PAID', method: 'UPI' },
-        { id: '3', student: 'Emily Brown', amount: '$450', date: 'Feb 20, 2026', status: 'PENDING', method: '-' },
-        { id: '4', student: 'Michael Scott', amount: '$450', date: 'Feb 01, 2026', status: 'OVERDUE', method: '-' },
-    ];
+    const [transactions, setTransactions] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchFees = async () => {
+            const { data, error } = await supabase
+                .from('Fee')
+                .select('*, profile:Profile(*)');
+            if (error) console.error(error);
+            else {
+                const formatted = data?.map(f => ({
+                    id: f.id,
+                    student: `${f.profile?.firstName} ${f.profile?.lastName}`,
+                    amount: `$${f.amount}`,
+                    date: new Date(f.dueDate).toLocaleDateString(),
+                    status: f.status,
+                    method: 'N/A' // Method not in current schema
+                })) || [];
+                setTransactions(formatted);
+            }
+            setLoading(false);
+        };
+        fetchFees();
+    }, []);
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh' }}>

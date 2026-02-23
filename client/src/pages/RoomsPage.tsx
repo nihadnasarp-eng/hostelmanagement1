@@ -1,17 +1,24 @@
 import Sidebar from '../components/Sidebar';
-import { Home, Plus, Search, Filter, MoreVertical } from 'lucide-react';
-import { useState } from 'react';
+import { Plus, Search, Filter, MoreVertical } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../services/supabaseClient';
 
 const RoomsPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [rooms, setRooms] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const rooms = [
-        { id: '1', number: 'A-101', type: 'Single', capacity: 1, status: 'FULL', price: '$500' },
-        { id: '2', number: 'A-102', type: 'Double', capacity: 2, status: 'AVAILABLE', price: '$350' },
-        { id: '3', number: 'B-201', type: 'Triple', capacity: 3, status: 'AVAILABLE', price: '$250' },
-        { id: '4', number: 'B-202', type: 'Single', capacity: 1, status: 'MAINTENANCE', price: '$500' },
-        { id: '5', number: 'C-301', type: 'Double', capacity: 2, status: 'AVAILABLE', price: '$350' },
-    ];
+    useEffect(() => {
+        const fetchRooms = async () => {
+            const { data, error } = await supabase
+                .from('Room')
+                .select('*');
+            if (error) console.error(error);
+            else setRooms(data || []);
+            setLoading(false);
+        };
+        fetchRooms();
+    }, []);
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh' }}>

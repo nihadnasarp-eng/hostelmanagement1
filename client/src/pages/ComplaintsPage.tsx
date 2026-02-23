@@ -1,13 +1,34 @@
 import Sidebar from '../components/Sidebar';
 import { ClipboardList, MessageSquare, Clock, CheckCircle, AlertCircle, Filter } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../services/supabaseClient';
 
 const ComplaintsPage = () => {
-    const complaints = [
-        { id: '1', title: 'Leaking Tap in Bathroom', student: 'John Doe', room: 'A-102', date: '2h ago', status: 'OPEN', priority: 'High' },
-        { id: '2', title: 'Wi-Fi connectivity issues', student: 'Sarah Williams', room: 'B-105', date: '5h ago', status: 'IN_PROGRESS', priority: 'Medium' },
-        { id: '3', title: 'Broken chair in study room', student: 'Mike Ross', room: 'C-301', date: '1d ago', status: 'RESOLVED', priority: 'Low' },
-        { id: '4', title: 'Mess food quality issue', student: 'Emily Brown', room: 'A-201', date: '2d ago', status: 'OPEN', priority: 'High' },
-    ];
+    const [complaints, setComplaints] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchComplaints = async () => {
+            const { data, error } = await supabase
+                .from('Complaint')
+                .select('*, profile:Profile(*, room:Room(*))');
+            if (error) console.error(error);
+            else {
+                const formatted = data?.map(c => ({
+                    id: c.id,
+                    title: c.title,
+                    student: `${c.profile?.firstName} ${c.profile?.lastName}`,
+                    room: c.profile?.room?.number || 'N/A',
+                    date: new Date(c.createdAt).toLocaleDateString(),
+                    status: c.status,
+                    priority: 'Medium' // Schema doesn't have priority yet
+                })) || [];
+                setComplaints(formatted);
+            }
+            setLoading(false);
+        };
+        fetchComplaints();
+    }, []);
 
     const getStatusStyle = (status: string) => {
         switch (status) {

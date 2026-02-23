@@ -1,16 +1,35 @@
 import Sidebar from '../components/Sidebar';
-import { Users, UserPlus, Search, Download, Mail, Phone, MapPin } from 'lucide-react';
-import { useState } from 'react';
+import { UserPlus, Search, Download, Mail, Phone, MapPin } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../services/supabaseClient';
 
 const StudentsPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [students, setStudents] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const students = [
-        { id: '1', name: 'Alex Johnson', email: 'alex@example.com', phone: '+1 234 567 890', room: 'A-302', joinDate: 'Jan 15, 2026', status: 'Active' },
-        { id: '2', name: 'Sarah Williams', email: 'sarah@example.com', phone: '+1 234 567 891', room: 'B-105', joinDate: 'Feb 10, 2026', status: 'Active' },
-        { id: '3', name: 'James Miller', email: 'james@example.com', phone: '+1 234 567 892', room: 'C-204', joinDate: 'Jan 05, 2026', status: 'Inactive' },
-        { id: '4', name: 'Emily Brown', email: 'emily@example.com', phone: '+1 234 567 893', room: 'A-201', joinDate: 'Feb 20, 2026', status: 'Active' },
-    ];
+    useEffect(() => {
+        const fetchStudents = async () => {
+            const { data, error } = await supabase
+                .from('Profile')
+                .select('*, room:Room(*)');
+            if (error) console.error(error);
+            else {
+                const formatted = data?.map(s => ({
+                    id: s.id,
+                    name: `${s.firstName} ${s.lastName}`,
+                    email: s.email || 'N/A', // Assuming email might be in profile or joined
+                    phone: s.phoneNumber || 'N/A',
+                    room: s.room?.number || 'Unassigned',
+                    joinDate: new Date(s.createdAt).toLocaleDateString(),
+                    status: 'Active' // Dummy status for now
+                })) || [];
+                setStudents(formatted);
+            }
+            setLoading(false);
+        };
+        fetchStudents();
+    }, []);
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh' }}>

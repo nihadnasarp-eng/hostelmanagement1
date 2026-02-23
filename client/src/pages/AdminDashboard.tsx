@@ -1,14 +1,34 @@
-import React from 'react';
 import Sidebar from '../components/Sidebar';
 import { Users, Home, ClipboardList, DollarSign, TrendingUp, AlertTriangle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../services/supabaseClient';
 
 const AdminDashboard = () => {
-    const stats = [
-        { name: 'Total Students', value: '248', icon: <Users />, color: '#6366f1' },
-        { name: 'Rooms Available', value: '12', icon: <Home />, color: '#10b981' },
-        { name: 'Pending Fees', value: '$2,450', icon: <DollarSign />, color: '#f59e0b' },
-        { name: 'Active Complaints', value: '8', icon: <ClipboardList />, color: '#ef4444' },
-    ];
+    const [stats, setStats] = useState([
+        { name: 'Total Students', value: '0', icon: <Users />, color: '#6366f1' },
+        { name: 'Rooms Available', value: '0', icon: <Home />, color: '#10b981' },
+        { name: 'Pending Fees', value: '$0', icon: <DollarSign />, color: '#f59e0b' },
+        { name: 'Active Complaints', value: '0', icon: <ClipboardList />, color: '#ef4444' },
+    ]);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            const { count: studentCount } = await supabase.from('Profile').select('*', { count: 'exact', head: true });
+            const { count: roomCount } = await supabase.from('Room').select('*', { count: 'exact', head: true }).eq('status', 'AVAILABLE');
+            const { data: fees } = await supabase.from('Fee').select('amount').eq('status', 'PENDING');
+            const { count: complaintCount } = await supabase.from('Complaint').select('*', { count: 'exact', head: true }).eq('status', 'OPEN');
+
+            const totalPendingFees = fees?.reduce((sum, fee) => sum + fee.amount, 0) || 0;
+
+            setStats([
+                { name: 'Total Students', value: (studentCount || 0).toString(), icon: <Users />, color: '#6366f1' },
+                { name: 'Rooms Available', value: (roomCount || 0).toString(), icon: <Home />, color: '#10b981' },
+                { name: 'Pending Fees', value: `$${totalPendingFees}`, icon: <DollarSign />, color: '#f59e0b' },
+                { name: 'Active Complaints', value: (complaintCount || 0).toString(), icon: <ClipboardList />, color: '#ef4444' },
+            ]);
+        };
+        fetchStats();
+    }, []);
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh' }}>

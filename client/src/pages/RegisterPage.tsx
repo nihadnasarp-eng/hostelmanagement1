@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { UserPlus, Mail, Lock, ArrowRight, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+import { supabase } from '../services/supabaseClient';
+
 const RegisterPage = () => {
     const [formData, setFormData] = useState({
         firstName: '',
@@ -10,12 +12,46 @@ const RegisterPage = () => {
         password: '',
         role: 'STUDENT'
     });
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const handleRegister = (e: React.FormEvent) => {
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Registering:', formData);
-        navigate('/login');
+        setLoading(true);
+
+        const { data, error } = await supabase.auth.signUp({
+            email: formData.email,
+            password: formData.password,
+        });
+
+        if (error) {
+            alert(error.message);
+            setLoading(false);
+            return;
+        }
+
+        if (data.user) {
+            // Create user entry in the public Profile table (or User table if using that)
+            // Assuming we use the schema provided earlier where User/Profile are separate
+            const { error: profileError } = await supabase
+                .from('Profile')
+                .insert([
+                    {
+                        userId: data.user.id,
+                        firstName: formData.firstName,
+                        lastName: formData.lastName,
+                        role: formData.role
+                    }
+                ]);
+
+            if (profileError) {
+                alert("Error creating profile: " + profileError.message);
+            } else {
+                alert('Registration successful! Please check your email for confirmation.');
+                navigate('/login');
+            }
+        }
+        setLoading(false);
     };
 
     return (
