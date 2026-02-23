@@ -27,13 +27,25 @@ const LoginPage = () => {
 
         if (data.user) {
             // Get role from profile table
-            const { data: profile } = await supabase
+            const { data: profile, error: profileError } = await supabase
                 .from('Profile')
                 .select('role')
                 .eq('userId', data.user.id)
                 .single();
 
-            const role = profile?.role || 'STUDENT';
+            if (profileError) {
+                console.warn("Profile fetch error:", profileError.message);
+                // If profile not found, maybe redirect to a setup page or default
+                // But let's try to be helpful
+                if (profileError.code === 'PGRST116') {
+                    // No profile found - this is common for manual auth users
+                    alert("No profile found for this user. Defaulting to Student dashboard.");
+                }
+            }
+
+            const role = (profile?.role || 'STUDENT').toUpperCase();
+            console.log("Logged in user role:", role);
+
             if (role === 'ADMIN') navigate('/admin');
             else if (role === 'WARDEN') navigate('/warden');
             else navigate('/student');
