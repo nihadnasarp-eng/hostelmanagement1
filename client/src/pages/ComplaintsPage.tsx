@@ -5,6 +5,11 @@ import { supabase } from '../services/supabaseClient';
 
 const ComplaintsPage = () => {
     const [complaints, setComplaints] = useState<any[]>([]);
+    const [stats, setStats] = useState({
+        open: 0,
+        inProgress: 0,
+        resolved: 0
+    });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -12,8 +17,10 @@ const ComplaintsPage = () => {
             const { data, error } = await supabase
                 .from('Complaint')
                 .select('*, profile:Profile(*, room:Room(*))');
-            if (error) console.error(error);
-            else {
+
+            if (error) {
+                console.error(error);
+            } else {
                 const formatted = data?.map(c => ({
                     id: c.id,
                     title: c.title,
@@ -21,9 +28,21 @@ const ComplaintsPage = () => {
                     room: c.profile?.room?.number || 'N/A',
                     date: new Date(c.createdAt).toLocaleDateString(),
                     status: c.status,
-                    priority: 'Medium' // Schema doesn't have priority yet
+                    priority: 'Medium'
                 })) || [];
+
                 setComplaints(formatted);
+
+                // Calculate Stats
+                const open = data?.filter(c => c.status === 'OPEN').length || 0;
+                const progress = data?.filter(c => c.status === 'IN_PROGRESS').length || 0;
+                const resolved = data?.filter(c => c.status === 'RESOLVED').length || 0;
+
+                setStats({
+                    open: open,
+                    inProgress: progress,
+                    resolved: resolved
+                });
             }
             setLoading(false);
         };
@@ -39,9 +58,11 @@ const ComplaintsPage = () => {
         }
     };
 
+    if (loading) return <div>Loading...</div>;
+
     return (
         <div style={{ display: 'flex', minHeight: '100vh' }}>
-            <Sidebar role="WARDEN" />
+            <Sidebar role="ADMIN" />
             <main style={{ marginLeft: '280px', flex: 1, padding: '2rem' }}>
                 <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                     <div>
@@ -56,17 +77,17 @@ const ComplaintsPage = () => {
                 <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
                     <div className="card" style={{ textAlign: 'center' }}>
                         <AlertCircle size={32} color="#ef4444" style={{ marginBottom: '0.5rem' }} />
-                        <h2 style={{ margin: 0 }}>4</h2>
+                        <h2 style={{ margin: 0 }}>{stats.open}</h2>
                         <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>Open</p>
                     </div>
                     <div className="card" style={{ textAlign: 'center' }}>
                         <Clock size={32} color="#f59e0b" style={{ marginBottom: '0.5rem' }} />
-                        <h2 style={{ margin: 0 }}>8</h2>
+                        <h2 style={{ margin: 0 }}>{stats.inProgress}</h2>
                         <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>In Progress</p>
                     </div>
                     <div className="card" style={{ textAlign: 'center' }}>
                         <CheckCircle size={32} color="#10b981" style={{ marginBottom: '0.5rem' }} />
-                        <h2 style={{ margin: 0 }}>142</h2>
+                        <h2 style={{ margin: 0 }}>{stats.resolved}</h2>
                         <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>Resolved</p>
                     </div>
                 </section>
@@ -80,7 +101,7 @@ const ComplaintsPage = () => {
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {complaints.map((c) => {
+                        {complaints.length > 0 ? complaints.map((c) => {
                             const style = getStatusStyle(c.status);
                             return (
                                 <div key={c.id} style={{
@@ -135,7 +156,9 @@ const ComplaintsPage = () => {
                                     </div>
                                 </div>
                             );
-                        })}
+                        }) : (
+                            <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>No complaints found.</p>
+                        )}
                     </div>
                 </section>
             </main>

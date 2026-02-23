@@ -5,6 +5,12 @@ import { supabase } from '../services/supabaseClient';
 
 const FeesPage = () => {
     const [transactions, setTransactions] = useState<any[]>([]);
+    const [stats, setStats] = useState({
+        totalRevenue: 0,
+        pendingDues: 0,
+        overdueAmount: 0,
+        pendingCount: 0
+    });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -12,22 +18,40 @@ const FeesPage = () => {
             const { data, error } = await supabase
                 .from('Fee')
                 .select('*, profile:Profile(*)');
-            if (error) console.error(error);
-            else {
+
+            if (error) {
+                console.error(error);
+            } else {
                 const formatted = data?.map(f => ({
                     id: f.id,
                     student: `${f.profile?.firstName} ${f.profile?.lastName}`,
-                    amount: `$${f.amount}`,
+                    amount: f.amount,
                     date: new Date(f.dueDate).toLocaleDateString(),
                     status: f.status,
-                    method: 'N/A' // Method not in current schema
+                    method: 'N/A'
                 })) || [];
+
                 setTransactions(formatted);
+
+                // Calculate Stats
+                const revenue = data?.filter(f => f.status === 'PAID').reduce((sum, f) => sum + f.amount, 0) || 0;
+                const pending = data?.filter(f => f.status === 'PENDING').reduce((sum, f) => sum + f.amount, 0) || 0;
+                const overdue = data?.filter(f => f.status === 'OVERDUE').reduce((sum, f) => sum + f.amount, 0) || 0;
+                const pCount = data?.filter(f => f.status === 'PENDING').length || 0;
+
+                setStats({
+                    totalRevenue: revenue,
+                    pendingDues: pending,
+                    overdueAmount: overdue,
+                    pendingCount: pCount
+                });
             }
             setLoading(false);
         };
         fetchFees();
     }, []);
+
+    if (loading) return <div>Loading...</div>;
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh' }}>
@@ -47,25 +71,24 @@ const FeesPage = () => {
                     <div className="card" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                             <TrendingUp size={24} />
-                            <span style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.2)', padding: '0.2rem 0.5rem', borderRadius: '10px' }}>+12% vs last month</span>
                         </div>
-                        <p style={{ margin: 0, opacity: 0.9 }}>Total Revenue (Feb)</p>
-                        <h2 style={{ fontSize: '2rem', margin: '0.5rem 0' }}>$42,850</h2>
+                        <p style={{ margin: 0, opacity: 0.9 }}>Total Revenue (All Time)</p>
+                        <h2 style={{ fontSize: '2rem', margin: '0.5rem 0' }}>${stats.totalRevenue.toLocaleString()}</h2>
                     </div>
 
                     <div className="card" style={{ background: 'white', borderLeft: '4px solid #f59e0b' }}>
                         <p style={{ margin: 0, color: 'var(--text-muted)' }}>Pending Dues</p>
-                        <h2 style={{ fontSize: '2rem', margin: '0.5rem 0' }}>$3,150</h2>
+                        <h2 style={{ fontSize: '2rem', margin: '0.5rem 0' }}>${stats.pendingDues.toLocaleString()}</h2>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#f59e0b', fontSize: '0.85rem' }}>
-                            <AlertCircle size={14} /> 12 Students have pending fees
+                            <AlertCircle size={14} /> {stats.pendingCount} Students have pending fees
                         </div>
                     </div>
 
                     <div className="card" style={{ background: 'white', borderLeft: '4px solid #ef4444' }}>
                         <p style={{ margin: 0, color: 'var(--text-muted)' }}>Overdue Amount</p>
-                        <h2 style={{ fontSize: '2rem', margin: '0.5rem 0' }}>$900</h2>
+                        <h2 style={{ fontSize: '2rem', margin: '0.5rem 0' }}>${stats.overdueAmount.toLocaleString()}</h2>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ef4444', fontSize: '0.85rem' }}>
-                            <AlertCircle size={14} /> 2 Overdue accounts
+                            <AlertCircle size={14} /> Action required on overdue accounts
                         </div>
                     </div>
                 </section>
@@ -96,10 +119,10 @@ const FeesPage = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {transactions.map((t) => (
+                                {transactions.length > 0 ? transactions.map((t) => (
                                     <tr key={t.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                         <td style={{ padding: '1rem', fontWeight: 600 }}>{t.student}</td>
-                                        <td style={{ padding: '1rem' }}>{t.amount}</td>
+                                        <td style={{ padding: '1rem' }}>${t.amount}</td>
                                         <td style={{ padding: '1rem' }}>{t.date}</td>
                                         <td style={{ padding: '1rem' }}>
                                             <span style={{
@@ -120,7 +143,11 @@ const FeesPage = () => {
                                             </button>
                                         </td>
                                     </tr>
-                                ))}
+                                )) : (
+                                    <tr>
+                                        <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No fee records found.</td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
