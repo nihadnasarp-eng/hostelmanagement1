@@ -71,7 +71,11 @@ const RoomsPage = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {rooms.map((room) => (
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading rooms...</td>
+                                    </tr>
+                                ) : rooms.map((room) => (
                                     <tr key={room.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s' }}>
                                         <td style={{ padding: '1rem', fontWeight: 600 }}>{room.number}</td>
                                         <td style={{ padding: '1rem' }}>{room.type}</td>

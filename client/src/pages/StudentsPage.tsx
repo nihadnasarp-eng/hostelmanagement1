@@ -71,7 +71,9 @@ const StudentsPage = () => {
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
-                        {students.map((student) => (
+                        {loading ? (
+                            <p style={{ textAlign: 'center', color: 'var(--text-muted)', gridColumn: '1 / -1' }}>Loading students...</p>
+                        ) : students.map((student) => (
                             <div key={student.id} className="card animate-fade-in" style={{ border: '1px solid var(--border)', position: 'relative' }}>
                                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
                                     <div style={{

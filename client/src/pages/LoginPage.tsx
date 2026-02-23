@@ -119,8 +119,13 @@ const LoginPage = () => {
                         </div>
                     </div>
 
-                    <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '1rem' }}>
-                        Sign In <ArrowRight size={18} />
+                    <button
+                        type="submit"
+                        className="btn btn-primary"
+                        style={{ width: '100%', justifyContent: 'center', padding: '1rem' }}
+                        disabled={loading}
+                    >
+                        {loading ? 'Signing In...' : <>Sign In <ArrowRight size={18} /></>}
                     </button>
                 </form>
 
