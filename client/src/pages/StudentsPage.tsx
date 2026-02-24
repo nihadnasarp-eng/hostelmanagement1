@@ -1,5 +1,5 @@
 import Sidebar from '../components/Sidebar';
-import { UserPlus, Search, Download, Mail, Phone, MapPin, X } from 'lucide-react';
+import { Search, Mail, Phone, MapPin, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 
@@ -67,12 +67,12 @@ const StudentsPage = () => {
     );
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
+        <div className="main-layout">
             <Sidebar role="ADMIN" />
-            <main style={{ marginLeft: '280px', flex: 1, padding: '2rem' }}>
-                <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <main className="main-content">
+                <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                     <div>
-                        <h1>Student Directory</h1>
+                        <h1 style={{ fontSize: '1.8rem' }}>Student Directory</h1>
                         <p style={{ color: 'var(--text-muted)' }}>Manage and view all hostel residents</p>
                     </div>
                 </header>
@@ -97,7 +97,7 @@ const StudentsPage = () => {
                         </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
                         {loading ? (
                             <p style={{ textAlign: 'center', color: 'var(--text-muted)', gridColumn: '1 / -1' }}>Loading students...</p>
                         ) : filteredStudents.length > 0 ? filteredStudents.map((student) => (
@@ -107,12 +107,12 @@ const StudentsPage = () => {
                                         width: '60px', height: '60px', borderRadius: '50%',
                                         background: 'var(--primary)', color: 'white',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        fontSize: '1.5rem', fontWeight: 700
+                                        fontSize: '1.5rem', fontWeight: 700, flexShrink: 0
                                     }}>
                                         {student.name[0]}
                                     </div>
-                                    <div>
-                                        <h3 style={{ margin: 0 }}>{student.name}</h3>
+                                    <div style={{ minWidth: 0 }}>
+                                        <h3 style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{student.name}</h3>
                                         <span style={{
                                             fontSize: '0.8rem',
                                             background: '#dcfce7',
@@ -128,17 +128,18 @@ const StudentsPage = () => {
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                                        <Mail size={16} /> {student.email}
+                                        <Mail size={16} style={{ flexShrink: 0 }} />
+                                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.email}</span>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                                        <Phone size={16} /> {student.phone}
+                                        <Phone size={16} style={{ flexShrink: 0 }} /> {student.phone}
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                                        <MapPin size={16} /> Room {student.roomNo}
+                                        <MapPin size={16} style={{ flexShrink: 0 }} /> Room {student.roomNo}
                                     </div>
                                 </div>
 
-                                <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
                                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Joined: {student.joinDate}</span>
                                     <button className="btn"
                                         onClick={() => { setSelectedStudent(student); setNewRoomId(student.roomId || ''); setShowModal(true); }}
@@ -157,9 +158,9 @@ const StudentsPage = () => {
                 {showModal && (
                     <div style={{
                         position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem'
                     }}>
-                        <div className="card" style={{ width: '400px', padding: '2rem', position: 'relative' }}>
+                        <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2rem', position: 'relative' }}>
                             <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', border: 'none', background: 'none', cursor: 'pointer' }}>
                                 <X size={20} />
                             </button>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
-import { CreditCard, Info, MapPin, Calendar, Users, X } from 'lucide-react';
+import { CreditCard, MapPin, Calendar, Users, X } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 
 const StudentDashboard = () => {
@@ -71,16 +71,16 @@ const StudentDashboard = () => {
     if (loading) return <div>Loading...</div>;
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
+        <div className="main-layout">
             <Sidebar role="STUDENT" />
-            <main style={{ marginLeft: '280px', flex: 1, padding: '2rem' }}>
+            <main className="main-content">
                 <header style={{ marginBottom: '2rem' }}>
                     <h1>Hello, {profile?.firstName || 'Student'}</h1>
                     <p style={{ color: 'var(--text-muted)' }}>Check your stay status and notifications</p>
                 </header>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                    <div className="card glass" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', color: 'white' }}>
+                <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                    <div className="card glass animate-fade-in" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', color: 'white' }}>
                         <h3 style={{ marginBottom: '1.5rem', opacity: 0.9 }}>Room Details</h3>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
                             <MapPin size={24} />
@@ -98,7 +98,7 @@ const StudentDashboard = () => {
                         </div>
                     </div>
 
-                    <div className="card">
+                    <div className="card animate-fade-in" style={{ animationDelay: '0.1s' }}>
                         <h3 style={{ marginBottom: '1.5rem' }}>Fee Status</h3>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                             <div>
@@ -120,8 +120,8 @@ const StudentDashboard = () => {
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem' }}>
-                    <div className="card">
+                <div className="grid-2-1" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem' }}>
+                    <div className="card animate-fade-in" style={{ animationDelay: '0.2s' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                             <h3>My Complaints</h3>
                             <button className="btn" onClick={() => setShowModal(true)} style={{ fontSize: '0.8rem', padding: '0.5rem 1rem', border: '1px solid var(--border)' }}>
@@ -149,7 +149,7 @@ const StudentDashboard = () => {
                         </div>
                     </div>
 
-                    <div className="card" style={{ background: '#f8fafc' }}>
+                    <div className="card animate-fade-in" style={{ background: '#f8fafc', animationDelay: '0.3s' }}>
                         <h3 style={{ marginBottom: '1rem' }}>Notice Board</h3>
                         <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>No new notifications.</p>
                     </div>
@@ -159,9 +159,9 @@ const StudentDashboard = () => {
                 {showModal && (
                     <div style={{
                         position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem'
                     }}>
-                        <div className="card" style={{ width: '400px', padding: '2rem', position: 'relative' }}>
+                        <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2rem', position: 'relative' }}>
                             <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', border: 'none', background: 'none', cursor: 'pointer' }}>
                                 <X size={20} />
                             </button>

@@ -61,15 +61,15 @@ const RegisterPage = () => {
             alignItems: 'center',
             justifyContent: 'center',
             background: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)',
-            padding: '2rem'
+            padding: '1.5rem'
         }}>
             <div className="card glass animate-fade-in" style={{
                 width: '100%',
                 maxWidth: '500px',
-                padding: '2.5rem',
+                padding: '2rem',
                 borderRadius: '24px'
             }}>
-                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
                     <div style={{
                         background: 'var(--secondary)',
                         width: '60px',
@@ -88,7 +88,7 @@ const RegisterPage = () => {
                 </div>
 
                 <form onSubmit={handleRegister}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                    <div className="grid-2-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
                         <div>
                             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>First Name</label>
                             <input
@@ -199,6 +199,14 @@ const RegisterPage = () => {
                     </button>
                 </div>
             </div>
+
+            <style>{`
+                @media (max-width: 480px) {
+                    .grid-2-1 {
+                        grid-template-columns: 1fr !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 };

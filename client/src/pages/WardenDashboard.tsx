@@ -59,33 +59,33 @@ const WardenDashboard = () => {
     if (loading) return <div>Loading...</div>;
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
+        <div className="main-layout">
             <Sidebar role="WARDEN" />
-            <main style={{ marginLeft: '280px', flex: 1, padding: '2rem' }}>
+            <main className="main-content">
                 <header style={{ marginBottom: '2rem' }}>
-                    <h1>Warden Control Panel</h1>
+                    <h1 style={{ fontSize: '1.8rem' }}>Warden Control Panel</h1>
                     <p style={{ color: 'var(--text-muted)' }}>Manage daily operations and student complaints</p>
                 </header>
 
-                <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                    <div className="card" style={{ textAlign: 'center' }}>
+                <section className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                    <div className="card animate-fade-in" style={{ textAlign: 'center' }}>
                         <Clock size={32} color="#f59e0b" style={{ marginBottom: '0.5rem' }} />
                         <h2 style={{ margin: 0 }}>{stats.pending}</h2>
                         <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>Pending Issues</p>
                     </div>
-                    <div className="card" style={{ textAlign: 'center' }}>
+                    <div className="card animate-fade-in" style={{ textAlign: 'center', animationDelay: '0.1s' }}>
                         <CheckCircle size={32} color="#10b981" style={{ marginBottom: '0.5rem' }} />
                         <h2 style={{ margin: 0 }}>{stats.resolved}</h2>
                         <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>Resolved Overall</p>
                     </div>
-                    <div className="card" style={{ textAlign: 'center' }}>
+                    <div className="card animate-fade-in" style={{ textAlign: 'center', animationDelay: '0.2s' }}>
                         <Users size={32} color="#6366f1" style={{ marginBottom: '0.5rem' }} />
                         <h2 style={{ margin: 0 }}>{stats.newStudents}</h2>
                         <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>Total Students</p>
                     </div>
                 </section>
 
-                <div className="card">
+                <div className="card animate-fade-in" style={{ animationDelay: '0.3s' }}>
                     <h3 style={{ marginBottom: '1.5rem' }}>Active Complaints Queue</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         {recentComplaints.length > 0 ? recentComplaints.map((task, i) => (
@@ -96,9 +96,11 @@ const WardenDashboard = () => {
                                 padding: '1.25rem',
                                 borderRadius: '16px',
                                 border: '1px solid var(--border)',
-                                background: '#fff'
+                                background: '#fff',
+                                flexWrap: 'wrap',
+                                gap: '1rem'
                             }}>
-                                <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', minWidth: 'min-content' }}>
                                     <div style={{
                                         width: '48px',
                                         height: '48px',
@@ -106,18 +108,19 @@ const WardenDashboard = () => {
                                         background: '#f1f5f9',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        justifyContent: 'center'
+                                        justifyContent: 'center',
+                                        flexShrink: 0
                                     }}>
                                         <ClipboardList color="var(--text-muted)" />
                                     </div>
-                                    <div>
-                                        <h4 style={{ margin: 0 }}>{task.title}</h4>
+                                    <div style={{ minWidth: 0 }}>
+                                        <h4 style={{ margin: 0, wordBreak: 'break-word' }}>{task.title}</h4>
                                         <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                                             {task.profile?.firstName} {task.profile?.lastName} • Room {task.profile?.roomId || 'Unassigned'} • {new Date(task.createdAt).toLocaleDateString()}
                                         </p>
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%', maxWidth: '280px' }}>
                                     <span style={{
                                         fontSize: '0.75rem',
                                         fontWeight: 700,
@@ -131,7 +134,7 @@ const WardenDashboard = () => {
                                     </span>
                                     <button className="btn"
                                         onClick={() => { setSelectedComplaint(task); setNewStatus(task.status); setShowModal(true); }}
-                                        style={{ fontSize: '0.85rem', padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white' }}>
+                                        style={{ fontSize: '0.85rem', padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', whiteSpace: 'nowrap' }}>
                                         Update Status
                                     </button>
                                 </div>
@@ -146,9 +149,9 @@ const WardenDashboard = () => {
                 {showModal && (
                     <div style={{
                         position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem'
                     }}>
-                        <div className="card" style={{ width: '400px', padding: '2rem', position: 'relative' }}>
+                        <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2rem', position: 'relative' }}>
                             <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', border: 'none', background: 'none', cursor: 'pointer' }}>
                                 <X size={20} />
                             </button>

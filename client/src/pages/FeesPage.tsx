@@ -1,5 +1,5 @@
 import Sidebar from '../components/Sidebar';
-import { DollarSign, TrendingUp, AlertCircle, Download, Calendar, X } from 'lucide-react';
+import { DollarSign, TrendingUp, AlertCircle, Download, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 
@@ -83,52 +83,52 @@ const FeesPage = () => {
     if (loading) return <div>Loading...</div>;
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
+        <div className="main-layout">
             <Sidebar role="ADMIN" />
-            <main style={{ marginLeft: '280px', flex: 1, padding: '2rem' }}>
-                <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <main className="main-content">
+                <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                     <div>
-                        <h1>Fee Management</h1>
+                        <h1 style={{ fontSize: '1.8rem' }}>Fee Management</h1>
                         <p style={{ color: 'var(--text-muted)' }}>Track payments, dues and revenue</p>
                     </div>
-                    <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+                    <button className="btn btn-primary" onClick={() => setShowModal(true)} style={{ width: 'auto' }}>
                         <DollarSign size={18} /> Record Fee / Payment
                     </button>
                 </header>
 
-                <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                    <div className="card" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white' }}>
+                <section className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                    <div className="card animate-fade-in" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                             <TrendingUp size={24} />
                         </div>
-                        <p style={{ margin: 0, opacity: 0.9 }}>Total Revenue (Paid)</p>
-                        <h2 style={{ fontSize: '2rem', margin: '0.5rem 0' }}>${stats.totalRevenue.toLocaleString()}</h2>
+                        <p style={{ margin: 0, opacity: 0.9, fontSize: '0.9rem' }}>Total Revenue (Paid)</p>
+                        <h2 style={{ fontSize: '1.8rem', margin: '0.5rem 0' }}>${stats.totalRevenue.toLocaleString()}</h2>
                     </div>
 
-                    <div className="card" style={{ background: 'white', borderLeft: '4px solid #f59e0b' }}>
-                        <p style={{ margin: 0, color: 'var(--text-muted)' }}>Pending Dues</p>
-                        <h2 style={{ fontSize: '2rem', margin: '0.5rem 0' }}>${stats.pendingDues.toLocaleString()}</h2>
+                    <div className="card animate-fade-in" style={{ background: 'white', borderLeft: '4px solid #f59e0b', animationDelay: '0.1s' }}>
+                        <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>Pending Dues</p>
+                        <h2 style={{ fontSize: '1.8rem', margin: '0.5rem 0' }}>${stats.pendingDues.toLocaleString()}</h2>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#f59e0b', fontSize: '0.85rem' }}>
                             <AlertCircle size={14} /> {stats.pendingCount} unpaid records
                         </div>
                     </div>
 
-                    <div className="card" style={{ background: 'white', borderLeft: '4px solid #ef4444' }}>
-                        <p style={{ margin: 0, color: 'var(--text-muted)' }}>Overdue Amount</p>
-                        <h2 style={{ fontSize: '2rem', margin: '0.5rem 0' }}>${stats.overdueAmount.toLocaleString()}</h2>
+                    <div className="card animate-fade-in" style={{ background: 'white', borderLeft: '4px solid #ef4444', animationDelay: '0.2s' }}>
+                        <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>Overdue Amount</p>
+                        <h2 style={{ fontSize: '1.8rem', margin: '0.5rem 0' }}>${stats.overdueAmount.toLocaleString()}</h2>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ef4444', fontSize: '0.85rem' }}>
                             <AlertCircle size={14} /> Action required
                         </div>
                     </div>
                 </section>
 
-                <section className="card">
+                <section className="card animate-fade-in" style={{ animationDelay: '0.3s' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                         <h3>Recent Transactions</h3>
                     </div>
 
                     <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
                             <thead>
                                 <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
                                     <th style={{ padding: '1rem', color: 'var(--text-muted)' }}>Student</th>
@@ -176,9 +176,9 @@ const FeesPage = () => {
                 {showModal && (
                     <div style={{
                         position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem'
                     }}>
-                        <div className="card" style={{ width: '400px', padding: '2rem', position: 'relative' }}>
+                        <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2rem', position: 'relative' }}>
                             <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', border: 'none', background: 'none', cursor: 'pointer' }}>
                                 <X size={20} />
                             </button>

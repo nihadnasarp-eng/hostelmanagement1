@@ -1,5 +1,5 @@
 import Sidebar from '../components/Sidebar';
-import { ClipboardList, MessageSquare, Clock, CheckCircle, AlertCircle, Filter, X } from 'lucide-react';
+import { MessageSquare, Clock, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 
@@ -70,35 +70,35 @@ const ComplaintsPage = () => {
     if (loading) return <div>Loading...</div>;
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
+        <div className="main-layout">
             <Sidebar role="ADMIN" />
-            <main style={{ marginLeft: '280px', flex: 1, padding: '2rem' }}>
-                <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <main className="main-content">
+                <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                     <div>
-                        <h1>Complaints Management</h1>
+                        <h1 style={{ fontSize: '1.8rem' }}>Complaints Management</h1>
                         <p style={{ color: 'var(--text-muted)' }}>Resolve issues and track maintenance requests</p>
                     </div>
                 </header>
 
-                <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                    <div className="card" style={{ textAlign: 'center' }}>
+                <section className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                    <div className="card animate-fade-in" style={{ textAlign: 'center' }}>
                         <AlertCircle size={32} color="#ef4444" style={{ marginBottom: '0.5rem' }} />
                         <h2 style={{ margin: 0 }}>{stats.open}</h2>
                         <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>Open</p>
                     </div>
-                    <div className="card" style={{ textAlign: 'center' }}>
+                    <div className="card animate-fade-in" style={{ textAlign: 'center', animationDelay: '0.1s' }}>
                         <Clock size={32} color="#f59e0b" style={{ marginBottom: '0.5rem' }} />
                         <h2 style={{ margin: 0 }}>{stats.inProgress}</h2>
                         <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>In Progress</p>
                     </div>
-                    <div className="card" style={{ textAlign: 'center' }}>
+                    <div className="card animate-fade-in" style={{ textAlign: 'center', animationDelay: '0.2s' }}>
                         <CheckCircle size={32} color="#10b981" style={{ marginBottom: '0.5rem' }} />
                         <h2 style={{ margin: 0 }}>{stats.resolved}</h2>
                         <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>Resolved</p>
                     </div>
                 </section>
 
-                <section className="card">
+                <section className="card animate-fade-in" style={{ animationDelay: '0.3s' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                         <h3>Complaints Queue</h3>
                     </div>
@@ -110,29 +110,29 @@ const ComplaintsPage = () => {
                                 <div key={c.id} style={{
                                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                     padding: '1.25rem', borderRadius: '16px', border: '1px solid var(--border)',
-                                    background: 'white'
+                                    background: 'white', flexWrap: 'wrap', gap: '1rem'
                                 }}>
-                                    <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', minWidth: 'min-content' }}>
                                         <div style={{
                                             width: '40px', height: '40px', borderRadius: '10px',
-                                            background: style.bg, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                            background: style.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
                                         }}>
                                             <MessageSquare size={20} color={style.color} />
                                         </div>
-                                        <div>
-                                            <h4 style={{ margin: '0 0 0.25rem 0' }}>{c.title}</h4>
+                                        <div style={{ minWidth: 0 }}>
+                                            <h4 style={{ margin: '0 0 0.25rem 0', wordBreak: 'break-word' }}>{c.title}</h4>
                                             <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                                Submitted by <strong>{c.student}</strong> • Room {c.room} • {c.date}
+                                                <strong>{c.student}</strong> • Room {c.room} • {c.date}
                                             </p>
                                         </div>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                                        <div style={{ textAlign: 'right' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%', maxWidth: '200px' }}>
+                                        <div style={{ textAlign: 'right', flex: 1 }}>
                                             <span style={{ fontSize: '0.85rem', color: style.color, fontWeight: 600 }}>{c.status.replace('_', ' ')}</span>
                                         </div>
                                         <button className="btn"
                                             onClick={() => { setSelectedComplaint(c); setNewStatus(c.status); setShowModal(true); }}
-                                            style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', background: 'var(--primary)', color: 'white' }}>
+                                            style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', background: 'var(--primary)', color: 'white', whiteSpace: 'nowrap' }}>
                                             Update
                                         </button>
                                     </div>
@@ -148,9 +148,9 @@ const ComplaintsPage = () => {
                 {showModal && (
                     <div style={{
                         position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem'
                     }}>
-                        <div className="card" style={{ width: '400px', padding: '2rem', position: 'relative' }}>
+                        <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2rem', position: 'relative' }}>
                             <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', border: 'none', background: 'none', cursor: 'pointer' }}>
                                 <X size={20} />
                             </button>

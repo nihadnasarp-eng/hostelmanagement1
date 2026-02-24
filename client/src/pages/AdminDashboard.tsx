@@ -42,22 +42,22 @@ const AdminDashboard = () => {
     }, []);
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh' }}>
+        <div className="main-layout">
             <Sidebar role="ADMIN" />
-            <main style={{ marginLeft: '280px', flex: 1, padding: '2rem' }}>
-                <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <main className="main-content">
+                <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                     <div>
-                        <h1 style={{ marginBottom: '0.25rem' }}>Admin Dashboard</h1>
+                        <h1 style={{ marginBottom: '0.25rem', fontSize: '1.8rem' }}>Admin Dashboard</h1>
                         <p style={{ color: 'var(--text-muted)' }}>Welcome back to the management portal</p>
                     </div>
-                    <button className="btn btn-primary">
+                    <button className="btn btn-primary" style={{ width: 'auto' }}>
                         Generate Report
                     </button>
                 </header>
 
-                <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                    {stats.map((stat) => (
-                        <div key={stat.name} className="card animate-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                <section className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                    {stats.map((stat, index) => (
+                        <div key={stat.name} className="card animate-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', animationDelay: `${index * 0.1}s` }}>
                             <div style={{
                                 background: stat.color + '20',
                                 color: stat.color,
@@ -77,10 +77,10 @@ const AdminDashboard = () => {
                     ))}
                 </section>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
-                    <div className="card">
+                <div className="grid-2-1" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
+                    <div className="card" style={{ overflowX: 'auto' }}>
                         <h3 style={{ marginBottom: '1.5rem' }}>Recent Registrations</h3>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '500px' }}>
                             <thead>
                                 <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
                                     <th style={{ padding: '1rem 0', color: 'var(--text-muted)' }}>Student Name</th>
