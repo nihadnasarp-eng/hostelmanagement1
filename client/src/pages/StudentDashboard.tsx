@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
-import { CreditCard, MapPin, Calendar, Users, X } from 'lucide-react';
+import { CreditCard, MapPin, Calendar, Users, X, Trash2, AlertTriangle } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
+import { useNavigate } from 'react-router-dom';
 
 const StudentDashboard = () => {
+    const navigate = useNavigate();
     const [profile, setProfile] = useState<any>(null);
     const [room, setRoom] = useState<any>(null);
     const [fees, setFees] = useState<any[]>([]);
     const [complaints, setComplaints] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [newComplaint, setNewComplaint] = useState({ title: '', description: '' });
 
     const fetchStudentData = async () => {
@@ -66,17 +69,39 @@ const StudentDashboard = () => {
         }
     };
 
+    const handleDeleteAccount = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Delete from Profile table
+        const { error } = await supabase
+            .from('Profile')
+            .delete()
+            .eq('userId', user.id);
+
+        if (error) {
+            alert("Error deleting data: " + error.message);
+        } else {
+            // Log out user
+            await supabase.auth.signOut();
+            alert("Your data has been deleted and you have been logged out.");
+            navigate('/login');
+        }
+    };
+
     const unpaidFee = fees.find(f => f.status === 'PENDING');
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'var(--primary)' }}>Loading Dashboard...</div>;
 
     return (
         <div className="main-layout">
             <Sidebar role="STUDENT" />
             <main className="main-content">
-                <header style={{ marginBottom: '2rem' }}>
-                    <h1>Hello, {profile?.firstName || 'Student'}</h1>
-                    <p style={{ color: 'var(--text-muted)' }}>Check your stay status and notifications</p>
+                <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                        <h1>Hello, {profile?.firstName || 'Student'}</h1>
+                        <p style={{ color: 'var(--text-muted)' }}>Check your stay status and notifications</p>
+                    </div>
                 </header>
 
                 <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
@@ -120,7 +145,7 @@ const StudentDashboard = () => {
                     </div>
                 </div>
 
-                <div className="grid-2-1" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem' }}>
+                <div className="grid-2-1" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
                     <div className="card animate-fade-in" style={{ animationDelay: '0.2s' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                             <h3>My Complaints</h3>
@@ -154,6 +179,29 @@ const StudentDashboard = () => {
                         <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>No new notifications.</p>
                     </div>
                 </div>
+
+                {/* Account Settings / Delete Option */}
+                <section className="card animate-fade-in" style={{ border: '1px solid #fee2e2', background: '#fffcfc', animationDelay: '0.4s' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                            <h3 style={{ color: '#b91c1c', margin: 0 }}>Privacy & Data</h3>
+                            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>You can permanently delete your profile and all associated data.</p>
+                        </div>
+                        <button
+                            onClick={() => setShowDeleteModal(true)}
+                            className="btn"
+                            style={{
+                                background: 'transparent',
+                                border: '1px solid #ef4444',
+                                color: '#ef4444',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem'
+                            }}>
+                            <Trash2 size={16} /> Delete Data
+                        </button>
+                    </div>
+                </section>
 
                 {/* Report Complaint Modal */}
                 {showModal && (
@@ -191,6 +239,36 @@ const StudentDashboard = () => {
                                     Submit Report
                                 </button>
                             </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* Delete Confirmation Modal */}
+                {showDeleteModal && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem'
+                    }}>
+                        <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2rem', textAlign: 'center' }}>
+                            <AlertTriangle size={48} color="#ef4444" style={{ marginBottom: '1rem' }} />
+                            <h3>Are you absolutely sure?</h3>
+                            <p style={{ color: 'var(--text-muted)', marginTop: '1rem', marginBottom: '2rem' }}>
+                                This action will permanently delete your student profile, room assignment, fees history, and complaints. This cannot be undone.
+                            </p>
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                <button
+                                    onClick={() => setShowDeleteModal(false)}
+                                    className="btn"
+                                    style={{ flex: 1, background: '#f1f5f9', border: 'none', color: 'var(--text-main)' }}>
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDeleteAccount}
+                                    className="btn"
+                                    style={{ flex: 1, background: '#ef4444', border: 'none', color: 'white' }}>
+                                    Delete My Data
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}

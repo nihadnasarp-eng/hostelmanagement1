@@ -31,21 +31,24 @@ const RegisterPage = () => {
         }
 
         if (data.user) {
-            // Create user entry in the public Profile table (or User table if using that)
-            // Assuming we use the schema provided earlier where User/Profile are separate
+            // Determine role based on email
+            const role = formData.email.toLowerCase() === 'nihadnasarp@gmail.com' ? 'ADMIN' : 'STUDENT';
+
             const { error: profileError } = await supabase
                 .from('Profile')
-                .insert([
+                .upsert([
                     {
                         userId: data.user.id,
                         firstName: formData.firstName,
                         lastName: formData.lastName,
-                        role: formData.role
+                        email: formData.email,
+                        role: role
                     }
-                ]);
+                ], { onConflict: 'userId' });
 
             if (profileError) {
-                alert("Error creating profile: " + profileError.message);
+                console.error("Profile Error Details:", profileError);
+                alert("Error saving profile: " + profileError.message);
             } else {
                 alert('Registration successful! Please check your email for confirmation.');
                 navigate('/login');
@@ -129,7 +132,7 @@ const RegisterPage = () => {
                             <Mail size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                             <input
                                 type="email"
-                                placeholder="you@example.com"
+                                placeholder="nihadnasarp@gmail.com"
                                 style={{
                                     width: '100%',
                                     padding: '0.75rem 1rem 0.75rem 2.5rem',
@@ -161,26 +164,6 @@ const RegisterPage = () => {
                                 required
                             />
                         </div>
-                    </div>
-
-                    <div style={{ marginBottom: '2rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Role</label>
-                        <select
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem 1rem',
-                                borderRadius: '12px',
-                                border: '1px solid var(--border)',
-                                outline: 'none',
-                                background: 'white'
-                            }}
-                            value={formData.role}
-                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                        >
-                            <option value="STUDENT">Student</option>
-                            <option value="WARDEN">Warden</option>
-                            <option value="ADMIN">Admin</option>
-                        </select>
                     </div>
 
                     <button

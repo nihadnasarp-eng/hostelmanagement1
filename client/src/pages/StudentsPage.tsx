@@ -1,5 +1,5 @@
 import Sidebar from '../components/Sidebar';
-import { Search, Mail, Phone, MapPin, X } from 'lucide-react';
+import { Search, Mail, Phone, MapPin, X, Trash2, AlertTriangle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 
@@ -9,6 +9,7 @@ const StudentsPage = () => {
     const [rooms, setRooms] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState<any>(null);
     const [newRoomId, setNewRoomId] = useState('');
 
@@ -26,10 +27,13 @@ const StudentsPage = () => {
                 phone: s.phoneNumber || 'N/A',
                 roomNo: s.room?.number || 'Unassigned',
                 roomId: s.roomId,
+                role: s.role,
+                userId: s.userId,
                 joinDate: new Date(s.createdAt).toLocaleDateString(),
                 status: 'Active'
             })) || [];
-            setStudents(formatted);
+            // Only show students, not admins (unless the admin wants to see everyone)
+            setStudents(formatted.filter(s => s.role === 'STUDENT'));
         }
         setLoading(false);
     };
@@ -57,6 +61,23 @@ const StudentsPage = () => {
             setShowModal(false);
             fetchStudents();
             fetchRooms();
+        }
+    };
+
+    const handleDeleteStudent = async () => {
+        if (!selectedStudent) return;
+
+        const { error } = await supabase
+            .from('Profile')
+            .delete()
+            .eq('id', selectedStudent.id);
+
+        if (error) {
+            alert("Error deleting student: " + error.message);
+        } else {
+            setShowDeleteModal(false);
+            alert("Student profile and associated data removed.");
+            fetchStudents();
         }
     };
 
@@ -140,12 +161,19 @@ const StudentsPage = () => {
                                 </div>
 
                                 <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Joined: {student.joinDate}</span>
-                                    <button className="btn"
-                                        onClick={() => { setSelectedStudent(student); setNewRoomId(student.roomId || ''); setShowModal(true); }}
-                                        style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', border: '1px solid var(--primary)', color: 'var(--primary)', background: 'transparent' }}>
-                                        Assign Room
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button className="btn"
+                                            onClick={() => { setSelectedStudent(student); setNewRoomId(student.roomId || ''); setShowModal(true); }}
+                                            style={{ padding: '0.5rem 0.75rem', fontSize: '0.85rem', border: '1px solid var(--primary)', color: 'var(--primary)', background: 'transparent' }}>
+                                            Assign
+                                        </button>
+                                        <button className="btn"
+                                            onClick={() => { setSelectedStudent(student); setShowDeleteModal(true); }}
+                                            style={{ padding: '0.5rem 0.75rem', fontSize: '0.85rem', border: '1px solid #ef4444', color: '#ef4444', background: 'transparent' }}>
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{student.joinDate}</span>
                                 </div>
                             </div>
                         )) : (
@@ -185,9 +213,40 @@ const StudentsPage = () => {
                         </div>
                     </div>
                 )}
+
+                {/* Delete Confirmation Modal */}
+                {showDeleteModal && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem'
+                    }}>
+                        <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2rem', textAlign: 'center' }}>
+                            <AlertTriangle size={48} color="#ef4444" style={{ marginBottom: '1rem' }} />
+                            <h3>Remove Student?</h3>
+                            <p style={{ color: 'var(--text-muted)', marginTop: '1rem', marginBottom: '2rem' }}>
+                                This will remove <strong>{selectedStudent?.name}</strong> from the system and unassign any rooms.
+                            </p>
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                <button
+                                    onClick={() => setShowDeleteModal(false)}
+                                    className="btn"
+                                    style={{ flex: 1, background: '#f1f5f9', border: 'none', color: 'var(--text-main)' }}>
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDeleteStudent}
+                                    className="btn"
+                                    style={{ flex: 1, background: '#ef4444', border: 'none', color: 'white' }}>
+                                    Confirm Removal
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );
 };
 
 export default StudentsPage;
+
